@@ -55,7 +55,7 @@ Demo Installation
 
 ```bash
 git clone https://github.com/alfaiajanon/FancyTerminal.git
-cd TUI-FancyTerminal
+cd FancyTerminal
 cd build
 cmake .
 make
