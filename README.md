@@ -34,7 +34,7 @@ a completely C based cross-platform Terminal UI library.
     FTElement *textField=createFTTextField("Text Hint","");    
     addToFancyTerminal(ft,text_field);
     ```
-- connect callback event handler functions (if you have any)
+- connect callback / event handler functions (if you have any)
     
     ```c
     ft_connect(move_btn, FT_EVENT_CLICK, myFunction, NULL);
@@ -54,7 +54,7 @@ a completely C based cross-platform Terminal UI library.
 Demo Installation
 
 ```bash
-git clone https://github.com/alfaiajanon/TUI-FancyTerminal.git
+git clone https://github.com/alfaiajanon/FancyTerminal.git
 cd TUI-FancyTerminal
 cd build
 cmake .
