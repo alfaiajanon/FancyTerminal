@@ -11,10 +11,12 @@ a completely C based cross-platform Terminal UI library.
 # Usage
 
 - First initialize a fancy terminal container
+    
     ```c    
     FancyTerminal *ft=initFancyTerminal();
     ```
 - Configure the layout (see [User Guide](./docs/UserGuide.md) for more details)
+    
     ```c
     setFTLayoutPattern(
     ft,
@@ -24,6 +26,7 @@ a completely C based cross-platform Terminal UI library.
     );
     ```
 - create elements and add them to the ft container
+
     ```c
     FTElement *button=createFTButton("Button");                            
     addToFancyTerminal(ft,button);
@@ -32,10 +35,12 @@ a completely C based cross-platform Terminal UI library.
     addToFancyTerminal(ft,text_field);
     ```
 - connect callback event handler functions (if you have any)
+    
     ```c
     ft_connect(move_btn, FT_EVENT_CLICK, myFunction, NULL);
     ```
 - finally, start the main loop of the fancy terminal
+    
     ```c
     enterFancyTerminal(ft);
     ```
