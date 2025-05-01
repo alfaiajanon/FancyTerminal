@@ -42,30 +42,28 @@ int main(){
 
     FTElement *logo = createFTLogo(                                         //2                            
         11,20,
-        " .---------------- \n"
-        "| .--------------. |\n"
-        "| |  _________   | |\n"
-        "| | |_   ___  |  | |\n"
-        "| |   | |_  \\_|  | |\n"
-        "| |   |  _|      | |\n"
-        "| |  _| |_       | |\n"
-        "| | |_____|      | |\n"
-        "| |              | |\n"
-        "| '--------------' |\n"
-        " '----------------' \n"
+        "   _     _   \n"
+        "  (c).-.(c)  \n"
+        "   / ._. \\   \n"
+        " __\\( Y )/__ \n"
+        "(_.-/'-'\\-._)\n"
+        "   || O ||   \n"
+        " _.' `-' '._ \n"
+        "(.-./`-'\\.-.)\n"
+        " `-'     `-' \n"
     );
     addToFancyTerminal(ft,logo);
     
     FTElement *move_btn=createFTButton("Button");                             //3
     addToFancyTerminal(ft,move_btn);
 
-    FTElement *from_file_path=createFTTextField("Text Field 1 ","");     //4
+    FTElement *from_file_path=createFTTextField("Write something... (1) ","");     //4
     addToFancyTerminal(ft,from_file_path);
     
     FTElement *radiomenus = createFTRadioBox(3, (char **)menus);            //5
     addToFancyTerminal(ft,radiomenus);
 
-    FTElement *to_file_path=createFTTextField("Text Field 2 ","");         //6
+    FTElement *to_file_path=createFTTextField("Write something... (2) ","");         //6
     addToFancyTerminal(ft,to_file_path);
     
     

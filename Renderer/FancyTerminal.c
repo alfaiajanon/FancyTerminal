@@ -374,8 +374,8 @@ void renderFTRadioBox(void *v, int* decorations, int width, int height, int x, i
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
         renderFTBox(width,height,x,y, color);
-    setColor(decorations[FT_COLOR]);
     for(int i=0;i<radiobox->elemCount;i++){
+        setColor(decorations[FT_COLOR]);
         if(i==radiobox->localPointer) setBackgroundColor(1);
         char *prefix=" ○ ";
         if(i==radiobox->selected) prefix=" ● ";
