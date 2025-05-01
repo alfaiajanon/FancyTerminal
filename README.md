@@ -1,13 +1,14 @@
-### TUI-FancyTerminal
+# TUI-FancyTerminal
 There are a lot of TUI library, how many of them are based on pure C?
 
 Presenting...
 FancyTerminal,
 a completely C based Terminal UI library.
+
 <br>
 
 
-### Usage
+# Usage
 
 First initialize a fancy terminal container
 ```c    
@@ -41,7 +42,7 @@ enterFancyTerminal(ft);
 <br>
 
 
-### Demo 
+# Demo 
 
 ![Demo Image](demo.png)
 
@@ -57,6 +58,6 @@ make
 <br>
 
 
-### Developer Guide
+# Developer Guide
 
 Please see the [Developer Guide](./docs/DeveloperGuide.md)
