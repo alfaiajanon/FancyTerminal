@@ -1,4 +1,4 @@
-# TUI-FancyTerminal
+# FancyTerminal
 There are a lot of TUI library, how many of them are based on pure C?
 
 Presenting... 
@@ -40,7 +40,7 @@ a completely C based cross-platform Terminal UI library.
     ft_connect(move_btn, FT_EVENT_CLICK, myFunction, NULL);
     ```
 - finally, start the main loop of the fancy terminal
-    
+
     ```c
     enterFancyTerminal(ft);
     ```
