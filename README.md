@@ -21,8 +21,8 @@ a completely C based cross-platform Terminal UI library.
     setFTLayoutPattern(
     ft,
     2,5,
-    "1 1 0 2 2\n"
-    "1 1 0 2 2\n"
+    "1 1 0 2 2,"
+    "1 1 0 2 2,"
     );
     ```
 - create elements and add them to the ft container

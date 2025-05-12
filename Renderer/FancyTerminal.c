@@ -202,6 +202,7 @@ FTElement *createFTTreeView(FTTreeNode *root){
     element->type=FT_TREEVIEW;
     element->element=tree;
     element->renderer=renderFTTreeView;
+    element->eventsCallable[FT_EVENT_SELECTED]=unselectableHandler;
     element->eventsCallable[FT_EVENT_INPUT_STREAM]=scrollHandlerFTTree;
     ft_default_decorations(element);
     return element;
@@ -280,14 +281,14 @@ void renderFTLogo(void *v, int* decorations, int width, int height, int x, int y
     int logo_x=x+width/2.0-logo->width/2.0-2;
 
     char *copy=ft_strdup(logo->pattern);
-    char *ptn=strtok(copy,"\n");
+    char *ptn=strtok(copy,",");
 
     if(strlen(logo->pattern)){
         int i=0;
         while(ptn){
             printXY(logo_x+2,logo_y+1+i,ptn);
             i++;
-            ptn=strtok(NULL,"\n");
+            ptn=strtok(NULL,",");
         }
     }
     free(copy);
@@ -394,7 +395,9 @@ void __renderFTTreeView(FTTreeNode *node, const char *prefix,int *x,int *y, int 
         printf("└── ");
     else
         printf("├── ");
+    node->childCount==0 ? setColor(GREEN) : setColor(GREY);
     printf("%s\n", node->label ? node->label : "(null)");
+    resetColor();
 
     char newPrefix[1024];
     snprintf(newPrefix, sizeof(newPrefix), "%s%s", prefix, isLast ? "    " : "│   ");
@@ -571,6 +574,7 @@ void setFTLayoutPattern(FancyTerminal *ft,int rowCount, int colCount, char *patt
             offset+=local_offset;
             ft->layout->pattern[i][j]=a-1;
         }
+        offset++;
     }
 
     updateFancyTerminal(ft);
