@@ -1,9 +1,6 @@
 # FancyTerminal
-There are a lot of TUI library, how many of them are based on pure C?
-
-Presenting... 
-FancyTerminal, 
-a completely C based cross-platform Terminal UI library.
+FancyTerminal is a lightweight, cross-platform terminal UI (TUI) library written entirely in C.
+While many TUI libraries exist, few are built from the ground up in pure C (and cross-platform) — FancyTerminal fills that gap with simplicity and full control.
 
 <br>
 
@@ -25,7 +22,7 @@ a completely C based cross-platform Terminal UI library.
     "1 1 0 2 2,"
     );
     ```
-- create elements and add them to the ft container
+- Create UI elements and add them 
 
     ```c
     FTElement *button=createFTButton("Button");                            
@@ -34,12 +31,12 @@ a completely C based cross-platform Terminal UI library.
     FTElement *textField=createFTTextField("Text Hint","");    
     addToFancyTerminal(ft,text_field);
     ```
-- connect callback / event handler functions (if you have any)
+- Register event handlers (optional)
     
     ```c
     ft_connect(move_btn, FT_EVENT_CLICK, myFunction, NULL);
     ```
-- finally, start the main loop of the fancy terminal
+- Finally, Start the TUI loop
 
     ```c
     enterFancyTerminal(ft);
@@ -51,7 +48,7 @@ a completely C based cross-platform Terminal UI library.
 
 ![Demo Image](demo.png)
 
-Demo Installation
+Building the Demo
 
 ```bash
 git clone https://github.com/alfaiajanon/FancyTerminal.git
@@ -63,6 +60,7 @@ make
 <br>
 
 
-# Developer Guide
+# Documentation
 
-Please see the [Developer Guide](./docs/DeveloperGuide.md)
+- [User Guide](./docs/UserGuide.md)
+- [Developer Guide](./docs/DeveloperGuide.md)
