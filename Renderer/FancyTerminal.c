@@ -4,9 +4,12 @@
 #include "FancyTerminal.h"
 #include "ExternalLib/rogueutil.h"
 #include "pthread.h"
+#include "../Keyboard/keyboard.h"
+
 
 
 enum Essentials{
+    NONE       = -1,
     ARROW_LEFT = 99900, 
     ARROW_RIGHT= 99901, 
     ARROW_UP   = 99902, 
@@ -26,14 +29,14 @@ void renderFTCheckBox(void*,int*, int, int, int, int, int,int);
 void renderFTRadioBox(void*,int*, int, int, int, int, int,int);
 void renderFTTreeView(void*,int*, int, int, int, int, int,int);
 
-int selectHandlerFTButton(FancyTerminal*,FTElement*,void*);
-int unselectableHandler(FancyTerminal*,FTElement*,void*);
-int unselectHandlerFTCheckBoxOrRadioBox(FancyTerminal*,FTElement*,void*);
+int selectHandlerFTButton   (FancyTerminal*,FTElement*,void*,void*);
+int unselectableHandler     (FancyTerminal*,FTElement*,void*,void*);
+int unselectHandlerFTCheckBoxOrRadioBox(FancyTerminal*,FTElement*,void*,void*);
 
-int inputHandlerFTTextField(FancyTerminal*,FTElement*,void*);
-int inputHandlerFTCheckBox(FancyTerminal*,FTElement*,void*);
-int inputHandlerFTRadioBox(FancyTerminal*,FTElement*,void*);
-int scrollHandlerFTTree(FancyTerminal*,FTElement*,void*);
+int inputHandlerFTTextField (FancyTerminal*,FTElement*,void*,void*);
+int inputHandlerFTCheckBox  (FancyTerminal*,FTElement*,void*,void*);
+int inputHandlerFTRadioBox  (FancyTerminal*,FTElement*,void*,void*);
+int scrollHandlerFTTree     (FancyTerminal*,FTElement*,void*,void*);
 
 void updateFancyTerminal(FancyTerminal *ft);
 void renderFancyTerminal(FancyTerminal *ft);
@@ -67,17 +70,18 @@ FancyTerminal* initFancyTerminal(){
 
     FancyTerminal *ft=(FancyTerminal*)malloc(sizeof(FancyTerminal));
     
-    ft->height=trows();
-    ft->width=tcols();
+    ft->height=0;
+    ft->width=0;
     ft->selector=0;
     ft->selected=0;
     ft->enabled=0;
     
     ft->layout=(FTLayout*)malloc(sizeof(FTLayout));
-    ft->layout->elemPointers=malloc(sizeof(void*));
-    ft->layout->elemTypes=malloc(sizeof(int));
+    ft->layout->elemPointers=malloc(sizeof(FTElement*));
     ft->layout->elemCount=0;
     ft->layout->loadedElemCount=0;
+
+    ft->auxStatus.needsRedraw=1;
 
     return ft;
 }
@@ -227,10 +231,8 @@ FTElement *createFTTreeView(FTTreeNode *root){
 
 
 void addToFancyTerminal(FancyTerminal *ft, FTElement *element){
-    ft->layout->elemPointers=realloc(ft->layout->elemPointers, (ft->layout->loadedElemCount+1)*sizeof(void*));
-    ft->layout->elemPointers[ft->layout->loadedElemCount]=(void*)element;
-    ft->layout->elemTypes=realloc(ft->layout->elemTypes, (ft->layout->loadedElemCount+1)*sizeof(int));
-    ft->layout->elemTypes[ft->layout->loadedElemCount]=element->type;
+    ft->layout->elemPointers=realloc(ft->layout->elemPointers, (ft->layout->loadedElemCount+1)*sizeof(FTElement*));
+    ft->layout->elemPointers[ft->layout->loadedElemCount]=(FTElement*)element;
     ft->layout->loadedElemCount++;
     
     updateFancyTerminal(ft);
@@ -256,20 +258,21 @@ void renderFTBox(int width, int height, int x, int y, int color){
     setColor(color);
     int w=width;
     int h=height;
-    for(int i=0; i<w; i++){
-        for(int j=0; j<h; j++){
-            if(i==0 || i==w-1)
+    for(int i=1; i<w+1; i++){
+        for(int j=1; j<h+1; j++){
+            if(i==1 || i==w)
                 printXY(x+i,y+j,"│");
-            else if(j==0 || j==h-1)
+            else if(j==1 || j==h)
                 printXY(x+i,y+j,"─");
         }
-        printXY(x+0,y+0,"╭");
-        printXY(x+w-1,y+0,"╮");
-        printXY(x+0,y+h-1,"╰");
-        printXY(x+w-1,y+h-1,"╯");
+        printXY(x+1,y+1,"╭");
+        printXY(x+w,y+1,"╮");
+        printXY(x+1,y+h,"╰");
+        printXY(x+w,y+h,"╯");
     }
     resetColor();
 }
+
 
 void renderFTLogo(void *v, int* decorations, int width, int height, int x, int y, int hovered, int selected){
     FTLogo *logo=v;
@@ -443,17 +446,17 @@ void renderFTTreeView(void *v, int* decorations, int width, int height, int x, i
 
 // select handler
 
-int selectHandlerFTButton(FancyTerminal *ft, FTElement *element, void* data){
+int selectHandlerFTButton(FancyTerminal *ft, FTElement *element, void* data, void* userData){
     renderFancyTerminal(ft);
     msleep(50);
     ft->selected=0;
     renderFancyTerminal(ft);
-    ft_eventHelper(ft,element,data,FT_EVENT_CLICK);
+    ft_eventHelper(ft,element,NULL,FT_EVENT_CLICK);
     ft_eventHelper(ft,element,NULL,FT_EVENT_UNSELECTED);
     return 0;
 }
 
-int unselectableHandler(FancyTerminal *ft, FTElement *element, void* data){
+int unselectableHandler(FancyTerminal *ft, FTElement *element, void* data, void* userData){
     ft->selected=0;
     ft_eventHelper(ft,element,NULL,FT_EVENT_UNSELECTED);
     return 0;
@@ -462,7 +465,7 @@ int unselectableHandler(FancyTerminal *ft, FTElement *element, void* data){
 
 // unselect handler
 
-int unselectHandlerFTCheckBoxOrRadioBox(FancyTerminal *ft, FTElement *element, void* data){
+int unselectHandlerFTCheckBoxOrRadioBox(FancyTerminal *ft, FTElement *element, void* data, void* userData){
     FTCheckBox *checkbox=element->element;
     checkbox->localPointer=-1;
     return 0;
@@ -473,15 +476,13 @@ int unselectHandlerFTCheckBoxOrRadioBox(FancyTerminal *ft, FTElement *element, v
 
 // Input stream handler 
 
-int inputHandlerFTTextField(FancyTerminal *ft, FTElement *element, void* data){
+int inputHandlerFTTextField(FancyTerminal *ft, FTElement *element, void* data, void* userData){
     int key=*((int*)data);
     FTTextField *textfield=element->element;
     char *temp=textfield->textData;
     if(key==BACKSPACE){
         if(strlen(textfield->textData)>0){
-            char *new=ft_strdup_n(temp,strlen(temp)-1);
-            free(textfield->textData);
-            textfield->textData=new;
+            textfield->textData[strlen(textfield->textData)-1] = '\0'; // Just truncate
         }
     }else{
         if(key==SPACE)key=' ';
@@ -491,37 +492,38 @@ int inputHandlerFTTextField(FancyTerminal *ft, FTElement *element, void* data){
         free(textfield->textData);
         textfield->textData=new;
     }
+    ft->auxStatus.needsRedraw=1;
     ft_eventHelper(ft,element,data,FT_EVENT_STATE_CHANGED);
     return 0;
 }
 
-int inputHandlerFTCheckBox(FancyTerminal *ft, FTElement *element, void* data){
+int inputHandlerFTCheckBox(FancyTerminal *ft, FTElement *element, void* data, void* userData){
     int key=*((int*)data);
     FTCheckBox *checkbox=element->element;
     if(key==SPACE){
         checkbox->checked[checkbox->localPointer]=!checkbox->checked[checkbox->localPointer];
         ft_eventHelper(ft,element,data,FT_EVENT_STATE_CHANGED);
     }
-    if(key=='j') checkbox->localPointer--;
-    if(key=='k') checkbox->localPointer++;
+    if(key==ARROW_UP) checkbox->localPointer--;
+    if(key==ARROW_DOWN) checkbox->localPointer++;
     checkbox->localPointer=(checkbox->localPointer+checkbox->elemCount)%(checkbox->elemCount);
     return 0;
 }
 
-int inputHandlerFTRadioBox(FancyTerminal *ft, FTElement *element, void* data){
+int inputHandlerFTRadioBox(FancyTerminal *ft, FTElement *element, void* data, void* userData){
     int key=*((int*)data);
     FTRadioBox *radiobox=element->element;
     if(key==SPACE){
         radiobox->selected=radiobox->localPointer;
         ft_eventHelper(ft,element,data,FT_EVENT_STATE_CHANGED);
     }
-    if(key=='j') radiobox->localPointer--;
-    if(key=='k') radiobox->localPointer++;
+    if(key==ARROW_UP) radiobox->localPointer--;
+    if(key==ARROW_DOWN) radiobox->localPointer++;
     radiobox->localPointer=(radiobox->localPointer+radiobox->elemCount)%(radiobox->elemCount);
     return 0;
 }
 
-int scrollHandlerFTTree(FancyTerminal *ft, FTElement *element, void* data){
+int scrollHandlerFTTree(FancyTerminal *ft, FTElement *element, void* data, void* userData){
     int key=*((int*)data);
     FTTreeView *tree=element->element;
     if(key=='j') tree->scrollPos--;
@@ -568,7 +570,7 @@ void setFTLayoutPattern(FancyTerminal *ft,int rowCount, int colCount, char *patt
 
     for(int i=0; i<rowCount; i++){
         for(int j=0; j<colCount; j++){
-            int a=1;
+            int a;
             int local_offset;
             sscanf(pattern+offset, "%d%n", &a, &local_offset );
             offset+=local_offset;
@@ -589,66 +591,98 @@ void updateFancyTerminal(FancyTerminal *ft){
     int rows = ft->layout->patternDims[0];
     int cols = ft->layout->patternDims[1];
 
-    ft->width = (tcols()/ft->layout->patternDims[1])*ft->layout->patternDims[1];
-    ft->height= (trows()/ft->layout->patternDims[0])*ft->layout->patternDims[0];
+    ft->layout->elemDatas = (FTElemData*)malloc(sizeof(FTElemData)*rows*cols);
+    int activeArr[rows*cols];
+    for(int i=0; i<rows*cols; i++) activeArr[i]=0;
 
-    int doneArr[rows*cols];
-    for(int i=0; i<rows*cols; i++) doneArr[i]=0;
+    int *uniqueNums=NULL;
+    int size=0;
 
-    for(int i=0,target=0; i<rows; i++){
-        int size_width = 0;
-        int size_height= 0;
-        
+    for(int i=0; i<rows; i++){
         for(int j=0; j<cols; j++){
-            if(ptt[i][j]==-1)continue;
-            if(ptt[i][j]==target && !doneArr[target]){
-        
-                ft->layout->elemDatas = (int**)realloc(ft->layout->elemDatas, (target+1)*sizeof(int*));
-                ft->layout->elemDatas[target] = (int*)malloc(sizeof(int)*4);
+            int a = ptt[i][j];
+            if(a==-1)continue;
+
+            int unique=1;
+            for(int k=0;k<size;k++){
+                if(uniqueNums[k]==a){
+                    unique=0;
+                    break;
+                }
+            }
+
+            if(unique){
+                uniqueNums = (int*)realloc(uniqueNums, sizeof(int)*(size+1));
+                uniqueNums[size] = a;
+
+                int size_width = 0;
+                int size_height= 0;
 
                 int k=0;
-                while((++k+j)<cols && ptt[i][k+j]==target);
+                while((++k+j)<cols && ptt[i][k+j]==a);
                 size_width=k;
                 k=0;
-                while((++k+i)<rows && ptt[k+i][j]==target);
+                while((++k+i)<rows && ptt[k+i][j]==a);
                 size_height=k;
-                doneArr[target]=1;
 
-                ft->layout->elemDatas[target][0]=size_width;
-                ft->layout->elemDatas[target][1]=size_height;
-                ft->layout->elemDatas[target][2]=j;
-                ft->layout->elemDatas[target][3]=i;
+                activeArr[a]=1;
+                ft->layout->elemDatas[a].width=size_width;
+                ft->layout->elemDatas[a].height=size_height;
+                ft->layout->elemDatas[a].posX=j;
+                ft->layout->elemDatas[a].posY=i;
                 ft->layout->elemCount++;
-                target++;
+
+                size++;
             }
         }
     }
+
+    FTElemData *newElemDatas = (FTElemData*)malloc(sizeof(FTElemData)*size);
+    for(int i=0, j=0; i<rows*cols; i++){
+        if(activeArr[i]){
+            newElemDatas[j] = ft->layout->elemDatas[i];
+            j++;
+        }
+    }
+    free(ft->layout->elemDatas);
+    ft->layout->elemDatas = newElemDatas;
+
 }
 
 
 
 void renderFancyTerminal(FancyTerminal *ft){
 
-    ft->width = (tcols()/ft->layout->patternDims[1])*ft->layout->patternDims[1];
-    ft->height= (trows()/ft->layout->patternDims[0])*ft->layout->patternDims[0];
+    int n_width =(tcols()/ft->layout->patternDims[1])*ft->layout->patternDims[1];
+    int n_height= (trows()/ft->layout->patternDims[0])*ft->layout->patternDims[0];
+    if(n_width!=ft->width || n_height!=ft->height){
+        ft->width=n_width;
+        ft->height=n_height;
+        ft->auxStatus.needsRedraw=1;
+    }
+
+    if(ft->auxStatus.needsRedraw){
+        ft->auxStatus.needsRedraw=0;
+    }else return;
+    cls();
 
     float unitWidth  = 1.0*ft->width/ft->layout->patternDims[1];
     float unitHeight = 1.0*ft->height/ft->layout->patternDims[0];
     unitHeight = unitHeight<3 ? 3:unitHeight;
 
-    cls();
-    hidecursor();
+    hidecursor(); 
 
     for(int i=0;i<ft->layout->elemCount;i++){
         FTElement *elem=ft->layout->elemPointers[i];
 
-        int **elemIdxData=ft->layout->elemDatas;
-        int width=elemIdxData[i][0]*unitWidth;
-        int height=elemIdxData[i][1]*unitHeight;
-        int x=elemIdxData[i][2]*unitWidth;
-        int y=elemIdxData[i][3]*unitHeight;
-        
-        elem->renderer(elem->element, elem->decorations, width, height, x, y, i==ft->selector, ft->selected && i==ft->selector); // note : auto type converts
+        FTElemData *elemIdxData=ft->layout->elemDatas;
+        int width=elemIdxData[i].width*unitWidth;
+        int height=elemIdxData[i].height*unitHeight;
+        int x=elemIdxData[i].posX*unitWidth;
+        int y=elemIdxData[i].posY*unitHeight;
+
+        elem->renderer(elem->element, elem->decorations, width-1, height, x, y, i==ft->selector, ft->selected && i==ft->selector); // note : auto type converts
+        fflush(stdout);
         resetColor(); 
     }
 }
@@ -658,8 +692,11 @@ void renderFancyTerminal(FancyTerminal *ft){
 
 
 void processInputFancyTerminal(FancyTerminal *ft){
+    int key = __detect_key();
+    // if(key==BACKSPACE) ft->enabled=0; // Exit on backspace
 
-    int key = ft_detectKeys();
+    if(key==NONE) return; 
+    ft->auxStatus.needsRedraw=1;
 
     if(ft->selected){           
         // Route to Individual Events 
@@ -675,9 +712,9 @@ void processInputFancyTerminal(FancyTerminal *ft){
     }else{                      
         // Master Control
 
-        if(key=='q') {          
-            cls();
-            showcursor();
+        if(key=='q') {      
+            cls();          
+            showcursor();   
             exit(0);
         }else if(key==ENTER){   
             ft->selected=1;
@@ -706,7 +743,10 @@ void enterFancyTerminal(FancyTerminal *ft){
     ft->enabled=1;
     while(ft->enabled) {
         renderFancyTerminal(ft);
+        __init_keyboard();
         processInputFancyTerminal(ft);
+        msleep(60);
+        __restore_keyboard();
     }
 }
 
@@ -716,9 +756,9 @@ void exitFancyTerminal(FancyTerminal *ft){
 
 
 
-void ft_connect(FTElement *element, int event, int (*func)(FancyTerminal*, FTElement*,void*), void *data){
+void ft_connect(FTElement *element, int event, int (*func)(FancyTerminal*, FTElement*,void*,void*),void *userData){
     element->eventsCallable[event]=func;
-    element->eventsCallableData[event]=data;
+    element->eventsCallableData[event]=userData;
 }
 
 
@@ -743,10 +783,10 @@ void ft_connect(FTElement *element, int event, int (*func)(FancyTerminal*, FTEle
 //------------------------------------------------------
 
 int ft_eventHelper(FancyTerminal *ft, FTElement *elem, void *data, int _EVENT){
-    if(data == NULL) data=elem->eventsCallableData[_EVENT];
-    int (*eventHandler)(FancyTerminal*,FTElement*,void*)=elem->eventsCallable[_EVENT];
+    void *userdata = elem->eventsCallableData[_EVENT];
+    int (*eventHandler)(FancyTerminal*,FTElement*,void*,void*)=elem->eventsCallable[_EVENT];
     if(eventHandler){
-        elem->eventsCallable[_EVENT](ft, elem, data);
+        elem->eventsCallable[_EVENT](ft, elem, data, userdata);
         return 0;
     }
     return 1;
@@ -764,33 +804,6 @@ char* ft_strdup_n(char *str, int len){
     strncpy(copy,str,len);
     copy[len]='\0';
     return copy;
-}
-
-int ft_detectKeys() {
-    static int detectedEscapeSequence;
-    // sleep(1);
-    char c = getch();
-
-    if(detectedEscapeSequence) {
-        if(c == '[') {
-            c=getchar();
-            if(c=='A')      return ARROW_UP;
-            else if(c=='B') return ARROW_DOWN;
-            else if(c=='C') return ARROW_RIGHT; 
-            else if(c=='D') return ARROW_LEFT; 
-        }
-        detectedEscapeSequence = 0;
-    }
-    if(c=='\033') { 
-        detectedEscapeSequence = 1;
-        return ESC;
-    } 
-    else if(c=='\b'||c==127)    return BACKSPACE;
-    else if(c=='\r'||c=='\n')   return ENTER;
-    else if(c==' ')             return SPACE;
-    else                        return c;
-
-    return -1; 
 }
 
 

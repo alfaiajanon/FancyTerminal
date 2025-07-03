@@ -20,11 +20,11 @@ enum FTElemType{
 };
 
 enum FTEvents{
-    FT_EVENT_SELECTED=0,
-    FT_EVENT_UNSELECTED=1,
-    FT_EVENT_CLICK=2,
-    FT_EVENT_STATE_CHANGED=3,
-    FT_EVENT_INPUT_STREAM=4
+    FT_EVENT_SELECTED,
+    FT_EVENT_UNSELECTED,
+    FT_EVENT_CLICK,
+    FT_EVENT_STATE_CHANGED,
+    FT_EVENT_INPUT_STREAM,
 };
 
 enum FTConstants{
@@ -42,6 +42,18 @@ enum FTDecorations{
 
 
 typedef struct _FTElement FTElement;
+
+typedef struct {
+    int width;
+    int height;
+    int posX;
+    int posY;
+} FTElemData;
+
+typedef struct{
+    int needsRedraw;
+} FTAuxStatus;
+
 
 
 
@@ -91,14 +103,18 @@ typedef struct FTTreeView{
     int scrollPos;
 } FTTreeView;
 
+
+
+
+
+
 typedef struct{
     int *patternDims;
     int **pattern;
     int elemCount;
     int loadedElemCount;
-    int *elemTypes;
-    void **elemPointers;
-    int **elemDatas; //0:width, 1:height 2:x, 3:y
+    FTElement **elemPointers;
+    FTElemData *elemDatas; 
 } FTLayout;
 
 typedef struct{
@@ -108,13 +124,14 @@ typedef struct{
     int height;
     int width;
     int enabled;
+    FTAuxStatus auxStatus;
 } FancyTerminal;
 
 typedef struct _FTElement{
     int type;
     void *element;
     void (*renderer)(void*, int*, int, int, int, int, int, int);                //elem, decorations, width, height, x, y, hovered, selected
-    int (*eventsCallable[TOTAL_EVENTS])(FancyTerminal*, FTElement*, void*);     //parent, self, data
+    int (*eventsCallable[TOTAL_EVENTS])(FancyTerminal*, FTElement*, void*, void*);     //parent, self, data, userData
     void* eventsCallableData[TOTAL_EVENTS];
     int* decorations;
 }FTElement;
@@ -135,7 +152,7 @@ void exitFancyTerminal(FancyTerminal *ft);
 void addToFancyTerminal(FancyTerminal *ft, FTElement *element);
 void setElementDecoration(FTElement *element, int decoration, int value);
 void setFTLayoutPattern(FancyTerminal *ft, int rowCount, int colCount, char *pattern);
-void ft_connect(FTElement* ft, int event, int (*func)(FancyTerminal*, FTElement*,void*), void* data);
+void ft_connect(FTElement* ft, int event, int (*func)(FancyTerminal*, FTElement*,void*,void*), void* data);
 
 
 #endif
