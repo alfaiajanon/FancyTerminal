@@ -62,7 +62,7 @@ make
 
 # External Library
 
-[rogueutil]("https://github.com/sakhmatd/rogueutil") is used to bring cross platform support
+[rogueutil](https://github.com/sakhmatd/rogueutil) is used to bring cross platform support
 
 
 # Documentation
