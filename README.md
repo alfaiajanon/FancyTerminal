@@ -1,5 +1,5 @@
 # FancyTerminal
-FancyTerminal is a lightweight, cross-platform terminal UI (TUI) library written entirely in C.
+A lightweight, cross-platform terminal UI (TUI) library written entirely in C.
 While many TUI libraries exist, few are built from the ground up in pure C (and cross-platform) — FancyTerminal fills that gap with simplicity and full control.
 
 <br>
@@ -63,4 +63,4 @@ make
 # Documentation
 
 - [User Guide](./docs/UserGuide.md)
-- [Developer Guide](./docs/DeveloperGuide.md)
+<!-- - [Developer Guide](./docs/DeveloperGuide.md) -->

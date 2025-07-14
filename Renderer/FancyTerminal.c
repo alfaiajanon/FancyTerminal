@@ -254,7 +254,7 @@ void addToFancyTerminal(FancyTerminal *ft, FTElement *element){
 //---------------------------------------------------
 
 
-void renderFTBox(int width, int height, int x, int y, int color){
+void renderFTWireBox(int width, int height, int x, int y, int color){
     setColor(color);
     int w=width;
     int h=height;
@@ -265,20 +265,40 @@ void renderFTBox(int width, int height, int x, int y, int color){
             else if(j==1 || j==h)
                 printXY(x+i,y+j,"─");
         }
-        printXY(x+1,y+1,"╭");
-        printXY(x+w,y+1,"╮");
-        printXY(x+1,y+h,"╰");
-        printXY(x+w,y+h,"╯");
     }
+    printXY(x+1,y+1,"╭");
+    printXY(x+w,y+1,"╮");
+    printXY(x+1,y+h,"╰");
+    printXY(x+w,y+h,"╯");
     resetColor();
 }
+
+// void renderFTIslandBox(int width, int height, int x, int y, int color){
+//     // setColor(color);
+//     setBackgroundColor(7);
+//     int w=width;
+//     int h=height;
+//     for(int i=1; i<w; i++){
+//         for(int j=1; j<h-1; j++){
+//             printXY(x+i,y+j," ");
+//         }
+//     }
+//     setBackgroundColor(0);
+//     for(int i=2; i<w+1; i++){
+//         printXY(x+i,y+height-1," ");
+//     }
+//     for(int j=2; j<h; j++){
+//         printXY(x+width,y+j," ");
+//     }
+//     resetColor();
+// }
 
 
 void renderFTLogo(void *v, int* decorations, int width, int height, int x, int y, int hovered, int selected){
     FTLogo *logo=v;
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
-        renderFTBox(width,height,x,y, color);
+        renderFTWireBox(width,height,x,y, color);
     setColor(decorations[FT_COLOR]);
     int logo_y=y+height/2.0-logo->height/2.0-1;
     int logo_x=x+width/2.0-logo->width/2.0-2;
@@ -301,7 +321,7 @@ void renderFTBanner(void *v, int* decorations, int width, int height, int x, int
     FTBanner *banner=v;
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
-        renderFTBox(width,height,x,y, color);
+        renderFTWireBox(width,height,x,y, color);
     setColor(decorations[FT_COLOR]);
 
     int lineCnt=0;
@@ -324,7 +344,7 @@ void renderFTButton(void *v, int* decorations, int width, int height, int x, int
     FTButton *button=v;
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
-        renderFTBox(width,height,x,y, color);
+        renderFTWireBox(width,height,x,y, color);
     setColor(decorations[FT_COLOR]);
     printXY(x+width/2-strlen(button->text)/2,y+height/2,button->text);
 }
@@ -333,7 +353,7 @@ void renderFTTextField(void *v, int* decorations, int width, int height, int x, 
     FTTextField *textfield=v;
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
-        renderFTBox(width,height,x,y, color);
+        renderFTWireBox(width,height,x,y, color);
     setColor(decorations[FT_COLOR]);
     char *copy=ft_strdup(textfield->textData);
     char *ptn=strtok(copy,"\n");
@@ -342,18 +362,18 @@ void renderFTTextField(void *v, int* decorations, int width, int height, int x, 
         lastLen=strlen(textfield->textData);
         int i=0;
         while(ptn){
-            printXY(x+2,y+2+i,ptn);
+            printXY(x+3,y+2+i,ptn);
             last_i=i;
             i++;
             ptn=strtok(NULL,"\n");
         }
     }else{
         setColor(GREY);
-        printXY(x+2,y+2,textfield->textHint);
+        printXY(x+3,y+2,textfield->textHint);
         resetColor();
     }
     if(lastLen && selected){
-        printXY(x+2+lastLen,y+2+last_i,"_");
+        printXY(x+3+lastLen,y+2+last_i,"_");
     }
 }
 
@@ -361,7 +381,7 @@ void renderFTCheckBox(void *v, int* decorations, int width, int height, int x, i
     FTCheckBox *checkbox=v;
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
-        renderFTBox(width,height,x,y, color);
+        renderFTWireBox(width,height,x,y, color);
     for(int i=0;i<checkbox->elemCount;i++){
         setColor(decorations[FT_COLOR]);
         if(i==checkbox->localPointer) setBackgroundColor(1);
@@ -377,7 +397,7 @@ void renderFTRadioBox(void *v, int* decorations, int width, int height, int x, i
     FTRadioBox *radiobox=v;
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
-        renderFTBox(width,height,x,y, color);
+        renderFTWireBox(width,height,x,y, color);
     for(int i=0;i<radiobox->elemCount;i++){
         setColor(decorations[FT_COLOR]);
         if(i==radiobox->localPointer) setBackgroundColor(1);
@@ -414,7 +434,7 @@ void renderFTTreeView(void *v, int* decorations, int width, int height, int x, i
     FTTreeView *treeview=v;
     int color=(hovered ? (selected ? CYAN : decorations[FT_SELECTOR_BORDER_COLOR]) : decorations[FT_BORDER_COLOR]); 
     if(color!=-1) 
-        renderFTBox(width,height,x,y, color);
+        renderFTWireBox(width,height,x,y, color);
     setColor(decorations[FT_COLOR]);
     FTTreeNode *root = treeview->root;
     x+=2;
@@ -482,7 +502,10 @@ int inputHandlerFTTextField(FancyTerminal *ft, FTElement *element, void* data, v
     char *temp=textfield->textData;
     if(key==BACKSPACE){
         if(strlen(textfield->textData)>0){
-            textfield->textData[strlen(textfield->textData)-1] = '\0'; // Just truncate
+            char *new=ft_strdup_n(temp,strlen(temp)-1);
+            free(textfield->textData);
+            textfield->textData=new;
+            // textfield->textData[strlen(textfield->textData)-1] = '\0'; // Just truncate
         }
     }else{
         if(key==SPACE)key=' ';
@@ -652,7 +675,6 @@ void updateFancyTerminal(FancyTerminal *ft){
 
 
 void renderFancyTerminal(FancyTerminal *ft){
-
     int n_width =(tcols()/ft->layout->patternDims[1])*ft->layout->patternDims[1];
     int n_height= (trows()/ft->layout->patternDims[0])*ft->layout->patternDims[0];
     if(n_width!=ft->width || n_height!=ft->height){
@@ -665,6 +687,18 @@ void renderFancyTerminal(FancyTerminal *ft){
         ft->auxStatus.needsRedraw=0;
     }else return;
     cls();
+
+    /* maybe in future if i implement boxy style */
+    /* 
+    setBackgroundColor(1);
+    for(int i=1;i<=trows();i++){
+        for(int j=1;j<=tcols();j++){
+            printXY(j,i," ");
+        }
+    }
+    */
+
+
 
     float unitWidth  = 1.0*ft->width/ft->layout->patternDims[1];
     float unitHeight = 1.0*ft->height/ft->layout->patternDims[0];
@@ -787,6 +821,7 @@ int ft_eventHelper(FancyTerminal *ft, FTElement *elem, void *data, int _EVENT){
     int (*eventHandler)(FancyTerminal*,FTElement*,void*,void*)=elem->eventsCallable[_EVENT];
     if(eventHandler){
         elem->eventsCallable[_EVENT](ft, elem, data, userdata);
+        ft->auxStatus.needsRedraw=1;
         return 0;
     }
     return 1;

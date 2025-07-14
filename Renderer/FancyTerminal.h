@@ -95,6 +95,7 @@ typedef struct{
 typedef struct FTTreeNode {
     char *label;
     int childCount;
+    char *metadata;
     struct FTTreeNode **childs;
 } FTTreeNode;
 
@@ -130,8 +131,8 @@ typedef struct{
 typedef struct _FTElement{
     int type;
     void *element;
-    void (*renderer)(void*, int*, int, int, int, int, int, int);                //elem, decorations, width, height, x, y, hovered, selected
-    int (*eventsCallable[TOTAL_EVENTS])(FancyTerminal*, FTElement*, void*, void*);     //parent, self, data, userData
+    void (*renderer)(void*, int*, int, int, int, int, int, int);                        //elem, decorations, width, height, x, y, hovered, selected
+    int (*eventsCallable[TOTAL_EVENTS])(FancyTerminal*, FTElement*, void*, void*);      //parent, self, data, userData
     void* eventsCallableData[TOTAL_EVENTS];
     int* decorations;
 }FTElement;
